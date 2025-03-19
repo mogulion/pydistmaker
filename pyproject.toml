@@ -16,6 +16,10 @@ jsonschema = "^4.23.0"
 [tool.poetry.scripts]
 pydistmaker = "pydistmaker.cli:main"
 
+[[tool.poetry.source]]
+name = "pypi-iav-cn"
+url = "https://artifactory.iav.com/artifactory/api/pypi/pypi-iav-cn/simple/"
+priority = "supplemental"  # 可选值: primary, secondary, supplemental
 
 [build-system]
 requires = ["poetry-core"]
