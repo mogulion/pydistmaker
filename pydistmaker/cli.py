@@ -41,10 +41,12 @@ def init(output: str, schema: bool):
 
 @cli.command()
 @click.option('--config', '-c', default='pydistmaker.json', help='配置文件路径')
-def build(config: str):
+@click.option('--mode', '-m', type=click.Choice(['nuitka_only', 'pyinstaller_only', 'mixed']), 
+              help='编译模式: nuitka_only(仅Nuitka), pyinstaller_only(仅PyInstaller), mixed(混合模式)')
+def build(config: str, mode: str):
     """执行打包流程"""
     try:
-        run_build(config)
+        run_build(config, mode)
     except Exception as e:
         click.echo(f"错误: {e}", err=True)
         sys.exit(1)

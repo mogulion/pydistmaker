@@ -29,16 +29,26 @@ class DistMaker:
     def build(self) -> None:
         """执行打包流程"""
         print(f"开始打包项目: {self.config.project.name} v{self.config.project.version}")
+        print(f"编译模式: {self.config.build_mode}")
         
         # 准备输出目录
         self._prepare_directories()
         
-        # 编译核心模块
-        if self.config.nuitka and self.config.nuitka.modules:
-            self._compile_core_modules()
-        
-        # 打包入口脚本
-        self._package_entries()
+        # 根据编译模式执行不同的打包流程
+        if self.config.build_mode == "nuitka_only":
+            # 仅使用Nuitka编译
+            if self.config.nuitka and self.config.nuitka.modules:
+                self._compile_core_modules()
+            self._compile_entries_with_nuitka()
+        elif self.config.build_mode == "pyinstaller_only":
+            # 仅使用PyInstaller打包
+            self._package_entries()
+        else:  # 混合模式
+            # 编译核心模块
+            if self.config.nuitka and self.config.nuitka.modules:
+                self._compile_core_modules()
+            # 打包入口脚本
+            self._package_entries()
         
         # 整理输出目录
         self._organize_output()
@@ -81,11 +91,24 @@ class DistMaker:
                 print(f"编译模块: {module_path}")
                 self._run_nuitka(module_path)
     
-    def _run_nuitka(self, module_path: str) -> None:
+    def _compile_entries_with_nuitka(self) -> None:
+        """使用Nuitka编译入口脚本"""
+        print("使用Nuitka编译入口脚本...")
+        
+        for entry in self.config.project.entries:
+            if not os.path.exists(entry):
+                print(f"警告: 入口脚本不存在: {entry}")
+                continue
+            
+            print(f"编译入口脚本: {entry}")
+            self._run_nuitka(entry, is_entry=True)
+    
+    def _run_nuitka(self, module_path: str, is_entry: bool = False) -> None:
         """运行Nuitka编译指定模块
         
         Args:
             module_path: 模块路径
+            is_entry: 是否为入口脚本
         """
         cmd = [sys.executable, "-m", "nuitka"]
         
@@ -201,6 +224,60 @@ class DistMaker:
         """整理输出目录结构"""
         print("整理输出目录结构...")
         
+        if self.config.build_mode == "nuitka_only":
+            self._organize_nuitka_output()
+        elif self.config.build_mode == "pyinstaller_only":
+            self._organize_pyinstaller_output()
+        else:  # 混合模式
+            self._organize_mixed_output()
+        
+        # 生成MANIFEST文件
+        self._generate_manifest()
+    
+    def _organize_nuitka_output(self) -> None:
+        """整理Nuitka输出目录结构"""
+        # 创建bin目录
+        bin_dir = os.path.join(self.output_dir, "bin")
+        os.makedirs(bin_dir, exist_ok=True)
+        
+        # 处理每个入口脚本的输出
+        for entry in self.config.project.entries:
+            entry_name = os.path.splitext(os.path.basename(entry))[0]
+            entry_output_dir = os.path.join(self.nuitka_output_dir, entry_name)
+            
+            if not os.path.exists(entry_output_dir):
+                print(f"警告: 入口脚本输出目录不存在: {entry_output_dir}")
+                continue
+            
+            # 查找编译后的可执行文件
+            exe_name = f"{entry_name}.exe" if sys.platform == "win32" else entry_name
+            exe_path = None
+            
+            # 在Nuitka输出目录中查找可执行文件
+            for root, _, files in os.walk(entry_output_dir):
+                for file in files:
+                    if file.endswith(".exe") and entry_name in file:
+                        exe_path = os.path.join(root, file)
+                        break
+                if exe_path:
+                    break
+            
+            if exe_path and os.path.exists(exe_path):
+                # 复制可执行文件到输出根目录
+                shutil.copy2(exe_path, os.path.join(self.output_dir, exe_name))
+                
+                # 复制依赖文件到bin目录
+                exe_dir = os.path.dirname(exe_path)
+                for item in os.listdir(exe_dir):
+                    item_path = os.path.join(exe_dir, item)
+                    if os.path.basename(item_path) != os.path.basename(exe_path):  # 排除可执行文件
+                        if os.path.isdir(item_path):
+                            shutil.copytree(item_path, os.path.join(bin_dir, item), dirs_exist_ok=True)
+                        else:
+                            shutil.copy2(item_path, bin_dir)
+    
+    def _organize_pyinstaller_output(self) -> None:
+        """整理PyInstaller输出目录结构"""
         # 创建bin目录
         bin_dir = os.path.join(self.output_dir, self.config.pyinstaller.bin_dir)
         os.makedirs(bin_dir, exist_ok=True)
@@ -228,6 +305,54 @@ class DistMaker:
                         shutil.copytree(item_path, os.path.join(bin_dir, item), dirs_exist_ok=True)
                     else:
                         shutil.copy2(item_path, bin_dir)
+    
+    def _organize_mixed_output(self) -> None:
+        """整理混合模式输出目录结构"""
+        # 创建bin目录
+        bin_dir = os.path.join(self.output_dir, self.config.pyinstaller.bin_dir)
+        os.makedirs(bin_dir, exist_ok=True)
+        
+        # 处理每个入口脚本的PyInstaller输出
+        for entry in self.config.project.entries:
+            entry_name = os.path.splitext(os.path.basename(entry))[0]
+            entry_output_dir = os.path.join(self.pyinstaller_output_dir, entry_name, entry_name)
+            
+            if not os.path.exists(entry_output_dir):
+                print(f"警告: 入口脚本输出目录不存在: {entry_output_dir}")
+                continue
+            
+            # 复制可执行文件到输出根目录
+            exe_name = f"{entry_name}.exe" if sys.platform == "win32" else entry_name
+            exe_path = os.path.join(entry_output_dir, exe_name)
+            if os.path.exists(exe_path):
+                shutil.copy2(exe_path, self.output_dir)
+            
+            # 复制依赖文件到bin目录
+            for item in os.listdir(entry_output_dir):
+                item_path = os.path.join(entry_output_dir, item)
+                if item != exe_name:  # 排除可执行文件
+                    if os.path.isdir(item_path):
+                        shutil.copytree(item_path, os.path.join(bin_dir, item), dirs_exist_ok=True)
+                    else:
+                        shutil.copy2(item_path, bin_dir)
+        
+        # 复制Nuitka编译的核心模块
+        if self.config.nuitka and self.config.nuitka.modules:
+            for module_pattern in self.config.nuitka.modules:
+                import glob
+                module_paths = glob.glob(module_pattern, recursive=True)
+                
+                for module_path in module_paths:
+                    module_name = os.path.splitext(os.path.basename(module_path))[0]
+                    module_output_dir = os.path.join(self.nuitka_output_dir, module_name)
+                    
+                    if os.path.exists(module_output_dir):
+                        # 复制编译后的模块到bin目录
+                        for root, _, files in os.walk(module_output_dir):
+                            for file in files:
+                                if file.endswith(".pyd") or file.endswith(".so"):
+                                    file_path = os.path.join(root, file)
+                                    shutil.copy2(file_path, bin_dir)
         
         # 生成MANIFEST文件
         self._generate_manifest()
@@ -236,11 +361,15 @@ class DistMaker:
         """生成MANIFEST文件"""
         manifest_path = os.path.join(self.output_dir, "MANIFEST.json")
         
+        # 根据编译模式设置bin_dir
+        bin_dir = self.config.pyinstaller.bin_dir if self.config.build_mode != "nuitka_only" else "bin"
+        
         manifest = {
             "name": self.config.project.name,
             "version": self.config.project.version,
             "entries": [os.path.basename(entry) for entry in self.config.project.entries],
-            "bin_dir": self.config.pyinstaller.bin_dir,
+            "build_mode": self.config.build_mode,
+            "bin_dir": bin_dir,
             "packager": "PyDistMaker",
             "packager_version": "0.1.0"
         }
@@ -259,17 +388,27 @@ class DistMaker:
             shutil.rmtree(self.temp_dir)
 
 
-def build(config_path: str) -> None:
+def build(config_path: str, mode: str = None) -> None:
     """执行打包流程
     
     Args:
         config_path: 配置文件路径
+        mode: 编译模式，如果指定则覆盖配置文件中的设置
     """
-    from pydistmaker.config import load_config
+    from pydistmaker.config import load_config, BuildMode
     
     try:
         # 加载配置
         config = load_config(config_path)
+        
+        # 如果指定了编译模式，则覆盖配置文件中的设置
+        if mode:
+            if mode == "nuitka_only":
+                config.build_mode = BuildMode.NUITKA_ONLY
+            elif mode == "pyinstaller_only":
+                config.build_mode = BuildMode.PYINSTALLER_ONLY
+            elif mode == "mixed":
+                config.build_mode = BuildMode.MIXED
         
         # 创建打包器并执行打包
         packager = DistMaker(config)

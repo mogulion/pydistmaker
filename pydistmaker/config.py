@@ -2,6 +2,7 @@
 
 import json
 import os
+from enum import Enum
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
@@ -66,9 +67,17 @@ class PyInstallerConfig(BaseModel):
         return v
 
 
+class BuildMode(str, Enum):
+    """编译模式"""
+    NUITKA_ONLY = "nuitka_only"  # 仅使用Nuitka
+    PYINSTALLER_ONLY = "pyinstaller_only"  # 仅使用PyInstaller
+    MIXED = "mixed"  # 混合模式（默认）
+
+
 class DistMakerConfig(BaseModel):
     """PyDistMaker配置"""
     project: ProjectConfig
+    build_mode: BuildMode = Field(BuildMode.MIXED, description="编译模式")
     nuitka: Optional[NuitkaConfig] = Field(default_factory=NuitkaConfig)
     pyinstaller: Optional[PyInstallerConfig] = Field(default_factory=PyInstallerConfig)
 
@@ -116,6 +125,7 @@ def generate_default_config() -> Dict[str, Any]:
             "entries": ["src/main.py"],
             "output_dir": "dist"
         },
+        "build_mode": "mixed",
         "nuitka": {
             "modules": ["core/*.py"],
             "lto": True,

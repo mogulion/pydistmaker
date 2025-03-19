@@ -20,6 +20,12 @@ def generate_schema() -> Dict[str, Any]:
                 "type": "string",
                 "description": "JSON Schema 文件路径"
             },
+            "build_mode": {
+                "type": "string",
+                "description": "编译模式",
+                "enum": ["nuitka_only", "pyinstaller_only", "mixed"],
+                "default": "mixed"
+            },
             "project": {
                 "type": "object",
                 "required": ["name", "version", "entries"],
