@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "pypackager"
+version = "0.1.0"
+description = ""
+authors = ["yang, qingfeng <qingfeng.yang@iav.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.14"
+nuitka = "^2.6.8"
+pyinstaller = "^6.12.0"
+click = "^8.1.8"
+pydantic = "^2.10.6"
+jsonschema = "^4.23.0"
+
+[tool.poetry.scripts]
+py-packager = "pypackager.cli:main"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
