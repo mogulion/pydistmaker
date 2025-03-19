@@ -74,12 +74,23 @@ class BuildMode(str, Enum):
     MIXED = "mixed"  # 混合模式（默认）
 
 
+class ArtifactoryConfig(BaseModel):
+    """Artifactory配置"""
+    url: str = Field(..., description="Artifactory服务器URL")
+    repository: str = Field(..., description="仓库名称")
+    username: str = Field(..., description="用户名")
+    password: str = Field(..., description="密码")
+    path_prefix: Optional[str] = Field(None, description="路径前缀")
+    properties: Optional[Dict[str, str]] = Field(None, description="自定义属性")
+
+
 class DistMakerConfig(BaseModel):
     """PyDistMaker配置"""
     project: ProjectConfig
     build_mode: BuildMode = Field(BuildMode.MIXED, description="编译模式")
     nuitka: Optional[NuitkaConfig] = Field(default_factory=NuitkaConfig)
     pyinstaller: Optional[PyInstallerConfig] = Field(default_factory=PyInstallerConfig)
+    artifactory: Optional[ArtifactoryConfig] = Field(None, description="Artifactory配置")
 
 
 def load_config(config_path: str) -> DistMakerConfig:
@@ -139,6 +150,17 @@ def generate_default_config() -> Dict[str, Any]:
             "bin_dir": "bin",
             "hidden_imports": [],
             "add_data": []
+        },
+        "artifactory": {
+            "url": "https://artifactory.example.com",
+            "repository": "my-repo",
+            "username": "username",
+            "password": "password",
+            "path_prefix": "python-apps",
+            "properties": {
+                "app.type": "python",
+                "app.name": "myapp"
+            }
         }
     }
 

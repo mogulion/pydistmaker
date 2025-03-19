@@ -13,6 +13,7 @@ from pydistmaker.config import (
     load_config
 )
 from pydistmaker.packager import build as run_build
+from pydistmaker.uploader import upload_to_artifactory as run_upload
 
 
 @click.group()
@@ -82,6 +83,25 @@ def verify(config: str, strict: bool):
                     click.echo(f"警告: 图标文件不存在: {config_obj.pyinstaller.icon}", err=True)
         
         click.echo(f"配置文件 {config} 验证通过")
+    except Exception as e:
+        click.echo(f"错误: {e}", err=True)
+        sys.exit(1)
+
+
+@cli.command()
+@click.option('--config', '-c', default='pydistmaker.json', help='配置文件路径')
+@click.option('--build', '-b', is_flag=True, help='先执行打包再上传')
+@click.option('--mode', '-m', type=click.Choice(['nuitka_only', 'pyinstaller_only', 'mixed']), 
+              help='编译模式: nuitka_only(仅Nuitka), pyinstaller_only(仅PyInstaller), mixed(混合模式)')
+def upload(config: str, build: bool, mode: str):
+    """上传编译产物到Artifactory"""
+    try:
+        # 如果指定了先打包，则先执行打包流程
+        if build:
+            run_build(config, mode)
+        
+        # 执行上传
+        run_upload(config)
     except Exception as e:
         click.echo(f"错误: {e}", err=True)
         sys.exit(1)

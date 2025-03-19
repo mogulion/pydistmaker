@@ -59,6 +59,17 @@ pydistmaker init --output=pydistmaker.json
     "bin_dir": "bin",
     "hidden_imports": ["encodings"],
     "add_data": ["assets/*:assets"]
+  },
+  "artifactory": {
+    "url": "https://artifactory.example.com",
+    "repository": "my-repo",
+    "username": "username",
+    "password": "password",
+    "path_prefix": "python-apps",
+    "properties": {
+      "app.type": "python",
+      "app.name": "myapp"
+    }
   }
 }
 ```
@@ -81,6 +92,25 @@ pydistmaker verify --config=pydistmaker.json --strict
 可选参数：
 - `--config, -c`：指定配置文件路径，默认为`pydistmaker.json`
 - `--strict, -s`：启用严格模式，检查文件路径是否存在
+
+### 5. 上传到Artifactory
+
+将编译产物上传到Artifactory仓库：
+
+```bash
+pydistmaker upload --config=pydistmaker.json --build
+```
+
+可选参数：
+- `--config, -c`：指定配置文件路径，默认为`pydistmaker.json`
+- `--build, -b`：先执行打包再上传
+- `--mode, -m`：编译模式，可选值为`nuitka_only`、`pyinstaller_only`、`mixed`
+
+上传功能说明：
+- 上传前必须在配置文件中添加`artifactory`部分
+- 上传时会自动将输出目录中的文件打包为ZIP文件
+- 上传路径格式为：`{path_prefix}/{project_name}/{version}/{project_name}-{version}.zip`
+- 支持添加自定义属性（properties）到上传的制品中
 
 ## 配置文件说明
 
@@ -115,6 +145,17 @@ pydistmaker verify --config=pydistmaker.json --strict
 | `add_data` | 字符串数组 | 额外资源文件列表 | `[]` |
 | `icon` | 字符串 | 可执行文件图标路径 | `null` |
 | `runtime_tmpdir` | 字符串 | 运行时临时目录 | `null` |
+
+### Artifactory配置 (artifactory)
+
+| 字段 | 类型 | 说明 | 默认值 |
+|------|------|------|--------|
+| `url` | 字符串 | Artifactory服务器URL | - |
+| `repository` | 字符串 | 仓库名称 | - |
+| `username` | 字符串 | 用户名 | - |
+| `password` | 字符串 | 密码 | - |
+| `path_prefix` | 字符串 | 路径前缀（可选） | `null` |
+| `properties` | 对象 | 自定义属性（可选） | `null` |
 
 ## 输出目录结构
 
@@ -155,6 +196,7 @@ dist/
 | `pydistmaker build` | 执行打包流程 | `--config=config.json` |
 | `pydistmaker init` | 生成配置模板 | `--output=custom_config.json` |
 | `pydistmaker verify` | 验证配置文件有效性 | `--strict` |
+| `pydistmaker upload` | 上传产物到Artifactory | `--build --mode=mixed` |
 
 ## 许可证
 

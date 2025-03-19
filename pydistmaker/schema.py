@@ -147,6 +147,39 @@ def generate_schema() -> Dict[str, Any]:
                         }
                     }
                 }
+            },
+            "artifactory": {
+                "type": "object",
+                "required": ["url", "repository", "username", "password"],
+                "properties": {
+                    "url": {
+                        "type": "string",
+                        "description": "Artifactory服务器URL"
+                    },
+                    "repository": {
+                        "type": "string",
+                        "description": "仓库名称"
+                    },
+                    "username": {
+                        "type": "string",
+                        "description": "用户名"
+                    },
+                    "password": {
+                        "type": "string",
+                        "description": "密码"
+                    },
+                    "path_prefix": {
+                        "type": "string",
+                        "description": "路径前缀"
+                    },
+                    "properties": {
+                        "type": "object",
+                        "description": "自定义属性",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                }
             }
         }
     }
