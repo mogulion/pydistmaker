@@ -4,15 +4,15 @@ from typing import Dict, Any
 
 
 def generate_schema() -> Dict[str, Any]:
-    """生成 PyPackager 配置文件的 JSON Schema
+    """生成 PyDistMaker 配置文件的 JSON Schema
     
     Returns:
         JSON Schema 字典
     """
     return {
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "title": "PyPackager Configuration",
-        "description": "PyPackager 配置文件格式",
+        "title": "PyDistMaker Configuration",
+        "description": "PyDistMaker 配置文件格式",
         "type": "object",
         "required": ["project"],
         "properties": {

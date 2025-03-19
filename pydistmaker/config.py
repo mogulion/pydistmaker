@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional
 import jsonschema
 from pydantic import BaseModel, Field, field_validator
 
-from pypackager.schema import generate_schema
+from pydistmaker.schema import generate_schema
 
 
 class ProjectConfig(BaseModel):
@@ -66,14 +66,14 @@ class PyInstallerConfig(BaseModel):
         return v
 
 
-class PackagerConfig(BaseModel):
-    """PyPackager配置"""
+class DistMakerConfig(BaseModel):
+    """PyDistMaker配置"""
     project: ProjectConfig
     nuitka: Optional[NuitkaConfig] = Field(default_factory=NuitkaConfig)
     pyinstaller: Optional[PyInstallerConfig] = Field(default_factory=PyInstallerConfig)
 
 
-def load_config(config_path: str) -> PackagerConfig:
+def load_config(config_path: str) -> DistMakerConfig:
     """加载配置文件
     
     Args:
@@ -99,7 +99,7 @@ def load_config(config_path: str) -> PackagerConfig:
     jsonschema.validate(config_data, schema)
     
     # 转换为Pydantic模型
-    return PackagerConfig.model_validate(config_data)
+    return DistMakerConfig.model_validate(config_data)
 
 
 def generate_default_config() -> Dict[str, Any]:

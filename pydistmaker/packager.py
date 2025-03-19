@@ -7,13 +7,13 @@ import sys
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
-from pypackager.config import PackagerConfig
+from pydistmaker.config import DistMakerConfig
 
 
-class Packager:
+class DistMaker:
     """打包器核心类"""
     
-    def __init__(self, config: PackagerConfig):
+    def __init__(self, config: DistMakerConfig):
         """初始化打包器
         
         Args:
@@ -241,7 +241,7 @@ class Packager:
             "version": self.config.project.version,
             "entries": [os.path.basename(entry) for entry in self.config.project.entries],
             "bin_dir": self.config.pyinstaller.bin_dir,
-            "packager": "PyPackager",
+            "packager": "PyDistMaker",
             "packager_version": "0.1.0"
         }
         
@@ -265,14 +265,14 @@ def build(config_path: str) -> None:
     Args:
         config_path: 配置文件路径
     """
-    from pypackager.config import load_config
+    from pydistmaker.config import load_config
     
     try:
         # 加载配置
         config = load_config(config_path)
         
         # 创建打包器并执行打包
-        packager = Packager(config)
+        packager = DistMaker(config)
         packager.build()
         
     except Exception as e:

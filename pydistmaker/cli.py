@@ -6,19 +6,19 @@ from typing import Optional
 
 import click
 
-from pypackager.config import (
+from pydistmaker.config import (
     generate_default_config,
     save_config,
     save_schema,
     load_config
 )
-from pypackager.packager import build as run_build
+from pydistmaker.packager import build as run_build
 
 
 @click.group()
 @click.version_option()
 def cli():
-    """PyPackager - Python应用打包工具
+    """PyDistMaker - Python应用打包工具
     
     结合Nuitka和PyInstaller优势的Python打包工具，
     支持多入口脚本打包、onedir模式和灵活的配置选项。
@@ -27,7 +27,7 @@ def cli():
 
 
 @cli.command()
-@click.option('--output', '-o', default='pypackager.json', help='输出配置文件路径')
+@click.option('--output', '-o', default='pydistmaker.json', help='输出配置文件路径')
 @click.option('--schema', '-s', is_flag=True, help='同时生成JSON Schema文件')
 def init(output: str, schema: bool):
     """初始化配置文件"""
@@ -40,7 +40,7 @@ def init(output: str, schema: bool):
 
 
 @cli.command()
-@click.option('--config', '-c', default='pypackager.json', help='配置文件路径')
+@click.option('--config', '-c', default='pydistmaker.json', help='配置文件路径')
 def build(config: str):
     """执行打包流程"""
     try:
@@ -51,7 +51,7 @@ def build(config: str):
 
 
 @cli.command()
-@click.option('--config', '-c', default='pypackager.json', help='配置文件路径')
+@click.option('--config', '-c', default='pydistmaker.json', help='配置文件路径')
 @click.option('--strict', '-s', is_flag=True, help='严格模式（检查文件路径是否存在）')
 def verify(config: str, strict: bool):
     """验证配置文件有效性"""

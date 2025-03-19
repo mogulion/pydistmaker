@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "pypackager"
+name = "pydistmaker"
 version = "0.1.0"
 description = ""
-authors = ["yang, qingfeng <qingfeng.yang@iav.com>"]
+authors = ["yang, qingfeng <319511269@qq.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -14,7 +14,7 @@ pydantic = "^2.10.6"
 jsonschema = "^4.23.0"
 
 [tool.poetry.scripts]
-py-packager = "pypackager.cli:main"
+pydistmaker = "pydistmaker.cli:main"
 
 
 [build-system]
