@@ -1,0 +1,31 @@
+{
+  "$schema": "pydistmaker-schema.json",
+  "build_mode": "pyinstaller_only",
+  "project": {
+    "name": "myapp",
+    "version": "1.0.0",
+    "entries": ["src/main.py", "src/cli.py"],
+    "output_dir": "dist"
+  },
+  "pyinstaller": {
+    "mode": "onedir",
+    "bin_dir": "bin",
+    "hidden_imports": [],
+    "add_data": ["config/*.json:config"],
+    "icon": "assets/icon.ico",
+    "runtime_tmpdir": "./tmp",
+    "extra_args": ["--clean", "--log-level=INFO"]
+  },
+  "artifactory": {
+    "url": "https://artifactory.iav.com",
+    "repository": "tools-iav-cn",
+    "username": "${ARTIFACTORY_USERNAME}",
+    "password": "${ARTIFACTORY_PASSWORD}",
+    "path_prefix": "python-apps",
+    "properties": {
+      "app.type": "python",
+      "app.name": "myapp",
+      "build.type": "pyinstaller-only"
+    }
+  }
+}

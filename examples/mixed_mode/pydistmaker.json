@@ -1,0 +1,37 @@
+{
+  "$schema": "pydistmaker-schema.json",
+  "build_mode": "mixed",
+  "project": {
+    "name": "myapp",
+    "version": "1.0.0",
+    "entries": ["src/main.py", "src/cli.py"],
+    "output_dir": "dist"
+  },
+  "nuitka": {
+    "modules": ["src/core/*.py", "src/utils/*.py"],
+    "lto": true,
+    "jobs": 4,
+    "standalone": true,
+    "plugins": ["numpy", "pandas"],
+    "include_packages": ["numpy", "pandas"]
+  },
+  "pyinstaller": {
+    "mode": "onedir",
+    "bin_dir": "bin",
+    "hidden_imports": ["encodings", "numpy", "pandas"],
+    "add_data": ["assets/*:assets"],
+    "icon": "assets/icon.ico"
+  },
+  "artifactory": {
+    "url": "https://artifactory.iav.com",
+    "repository": "tools-iav-cn",
+    "username": "${ARTIFACTORY_USERNAME}",
+    "password": "${ARTIFACTORY_PASSWORD}",
+    "path_prefix": "python-apps",
+    "properties": {
+      "app.type": "python",
+      "app.name": "myapp",
+      "build.type": "mixed-mode"
+    }
+  }
+}
